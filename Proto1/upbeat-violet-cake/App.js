@@ -10,6 +10,8 @@ import SettingScreen from './SettingScreen'; // 설정 화면 컴포넌트를 �
 
 const Stack = createStackNavigator();
 
+
+
 export default function App() {
   return (
     <NavigationContainer>
