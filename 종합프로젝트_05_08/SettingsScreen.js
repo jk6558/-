@@ -1,45 +1,42 @@
 //SettingsScreen.js
-/*
 import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, Switch, TouchableOpacity } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function SettingScreen() {
   return (
     <View style={styles.container}>
-      <Text>설정 화면입니다.</Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
-*/
-
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, Switch, Button } from 'react-native';
-
-export default function SettingsScreen() {
-  const [isEnabled, setIsEnabled] = useState(false);
-  const toggleSwitch = () => setIsEnabled(previousState => !previousState);
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>설정 화면입니다.</Text>
-      <View style={styles.settingOption}>
-        <Text>알림 받기:</Text>
-        <Switch
-          trackColor={{ false: "#767577", true: "#81b0ff" }}
-          thumbColor={isEnabled ? "#f5dd4b" : "#f4f3f4"}
-          onValueChange={toggleSwitch}
-          value={isEnabled}
-        />
+      {/* 본인 프로필 정보 */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>내 프로필</Text>
+        <TouchableOpacity style={styles.item}>
+          <Text>프로필 수정</Text>
+          <MaterialIcons name="keyboard-arrow-right" size={24} color="black" />
+        </TouchableOpacity>
       </View>
-      <Button title="테마 변경" onPress={() => console.log('테마 변경')} />
+
+      {/* 알림 설정 */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>알림 설정</Text>
+        <View style={styles.item}>
+          <Text>알림 허용</Text>
+          <Switch />
+        </View>
+        <View style={styles.item}>
+          <Text>진동 허용</Text>
+          <Switch />
+        </View>
+      </View>
+
+      {/* 로그아웃 */}
+      <TouchableOpacity style={styles.section}>
+        <Text style={styles.sectionTitle}>로그아웃</Text>
+      </TouchableOpacity>
+
+      {/* 계정 삭제 */}
+      <TouchableOpacity style={styles.section}>
+        <Text style={styles.sectionTitle}>계정 삭제</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -47,17 +44,22 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#fff',
   },
-  title: {
+  section: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  sectionTitle: {
     fontSize: 18,
-    marginBottom: 20,
+    fontWeight: 'bold',
   },
-  settingOption: {
+  item: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    paddingVertical: 8,
   },
 });
-
