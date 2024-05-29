@@ -6,25 +6,28 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { getFirestore, collection, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 import { getAuth, signOut, deleteUser } from 'firebase/auth';
+//추가된부분
+import * as Notifications from 'expo-notifications';
 
 export default function SettingScreen() {
   const handleFriend = () => {
-        Alert.alert('알림', '친구목록');
-    };
+    navigation.navigate('FriendsList');
+  };
 
-    const handleLike = () => {
-      Alert.alert('알림', '칭찬받은목록!');
-    };
+  const handleLike = () => {
+    navigation.navigate('ReceiveMessage');  // ReceiveMessage 스크린으로 이동
+  };
 
-    const handleSetting = () => {
-      navigation.navigate('Settings');
-    };
+  const handleSetting = () => {
+    navigation.navigate('Settings');
+  };
 
-    const handleEnd = () => {
-      BackHandler.exitApp();
-    };
-    
+  const handleEnd = () => {
+    BackHandler.exitApp();
+  };
+      
   const [vibrationEnabled, setVibrationEnabled] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   const navigation = useNavigation();
   const [users, setUserData] = useState({});
@@ -63,7 +66,15 @@ export default function SettingScreen() {
   };
 
   //알림 처리 함수
-  //const toggleNotifications = () => {};
+  const toggleNotifications = async () => {
+    setNotificationsEnabled(!notificationsEnabled);
+    if (!notificationsEnabled) {
+      const token = await registerForPushNotificationsAsync();
+      console.log('Notification token:', token);
+    } else {
+      Alert.alert('알림이 비활성화되었습니다.');
+    }
+  };
 
    // 로그아웃 처리 함수
   const handleLogout = () => {
@@ -114,18 +125,20 @@ export default function SettingScreen() {
         </View>
       {/* 알림 설정 */}
       <View style={styles.section}>
-       <Text style={styles.sectionTitle}>알림 설정</Text>
-       <View style={styles.item}>
+       <Text style={styles.sectionTitle}>알림 설정</Text></View>
+      {/* 알림 허용 */}
+      <View style={styles.section}>
+       <View style={styles.item}></View>
          <Text>알림 허용</Text>
-         <Switch />
-      </View>
+         <Switch value={notificationsEnabled} onValueChange={toggleNotifications} />
+        </View>
       {/*진동 허용*/ }
       <View style={styles.section}>
         <View style={styles.item}></View>
           <Text>진동 허용</Text>
           <Switch value={vibrationEnabled} onValueChange={toggleVibration} />
         </View>
-      </View>
+      
 
       {/* 로그아웃 */}
       <TouchableOpacity style={styles.section} onPress={handleLogout}>
@@ -138,10 +151,10 @@ export default function SettingScreen() {
       </TouchableOpacity>
 
       <View style={styles.bottomFrame}>
-          <Button onPress={handleFriend} icon={() => <MaterialIcons name="people" size={24} color="black" />}></Button>
-          <Button onPress={handleLike} icon={() => <MaterialIcons name="favorite-border" size={24} color="black" />}></Button>
-          <Button onPress={handleSetting} icon={() => <MaterialIcons name="settings" size={24} color="black" />}></Button>
-          <Button onPress={handleEnd} icon={() => <MaterialIcons name="logout" size={24} color="black" />}></Button>
+        <Button onPress={handleFriend} icon={() => <MaterialIcons name="people" size={24} color="#1DA1F2" />} />
+        <Button onPress={handleLike} icon={() => <MaterialIcons name="favorite-border" size={24} color="#1DA1F2" />} />
+        <Button onPress={handleSetting} icon={() => <MaterialIcons name="settings" size={24} color="#1DA1F2" />} />
+        <Button onPress={handleEnd} icon={() => <MaterialIcons name="logout" size={24} color="#1DA1F2" />} />
         </View>
     </View>
   );
@@ -172,14 +185,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   bottomFrame: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      position: 'absolute',
-      bottom: 20,
-      left: 0,
-      right: 0,
-    },
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+  },
     title: {
     fontSize: 24,
     marginBottom: 16,
@@ -190,3 +203,34 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 });
+
+const registerForPushNotificationsAsync = async () => {
+  let token;
+  if (Constants.isDevice) {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== 'granted') {
+      Alert.alert('Failed to get push token for push notification!');
+      return;
+    }
+    token = (await Notifications.getExpoPushTokenAsync()).data;
+    console.log(token);
+  } else {
+    Alert.alert('Must use physical device for Push Notifications');
+  }
+
+  if (Platform.OS === 'android') {
+    Notifications.setNotificationChannelAsync('default', {
+      name: 'default',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#FF231F7C',
+    });
+  }
+
+  return token;
+};
