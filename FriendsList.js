@@ -634,8 +634,126 @@ export default FriendsList;
 
 //////////////////
 
+/*
 //v7
 //소속정보 추가
+//FriendsList.js
+//잘됨
+
+import React, { useState, useEffect } from 'react';
+import { View, FlatList, Alert, StyleSheet } from 'react-native';
+import { ActivityIndicator, Card, Text, TouchableRipple } from 'react-native-paper';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import { useNavigation } from '@react-navigation/native';
+
+const FriendsList = () => {
+  const [loading, setLoading] = useState(true);
+  const [friends, setFriends] = useState([]);
+  const db = getFirestore();
+  const auth = getAuth();
+  const currentUser = auth.currentUser;
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const fetchFriends = async () => {
+      if (currentUser) {
+        try {
+          const userDocRef = doc(db, "users", currentUser.uid);
+          const userDocSnap = await getDoc(userDocRef);
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            if (userData.friends && userData.friends.length > 0) {
+              const friendsDetails = await Promise.all(userData.friends.map(friendId =>
+                getDoc(doc(db, "users", friendId))
+              ));
+              const friendsData = friendsDetails.map(doc => {
+                if (doc.exists()) {
+                  return { id: doc.id, ...doc.data() };
+                }
+                return null;
+              }).filter(Boolean);
+              setFriends(friendsData);
+            }
+          }
+        } catch (error) {
+          Alert.alert("데이터 로딩 실패", "친구 목록을 불러오는 데 실패했습니다.");
+          console.error("Failed to fetch friends:", error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchFriends();
+  }, [currentUser]);
+
+  if (loading) {
+    return <ActivityIndicator animating={true} size="large" style={styles.loadingIndicator} />;
+  }
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={friends}
+        renderItem={({ item }) => (
+          <TouchableRipple
+            onPress={() => navigation.navigate('SendMessage', { friendId: item.id, friendName: item.name })}
+            rippleColor="rgba(0, 0, 0, .32)"
+          >
+            <Card style={styles.card}>
+              <Card.Content>
+                <Text style={styles.name}>{item.name}</Text>
+                <Text style={styles.affiliation}>{item.affiliation}</Text>
+                <Text style={styles.email}>{item.email}</Text>
+              </Card.Content>
+            </Card>
+          </TouchableRipple>
+        )}
+        keyExtractor={item => item.id}
+      />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f0f0f0',
+    padding: 10,
+  },
+  loadingIndicator: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  card: {
+    marginVertical: 8,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    elevation: 4,
+  },
+  name: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  affiliation: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  },
+  email: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  },
+});
+
+export default FriendsList;
+*/
+
+/////////
 
 import React, { useState, useEffect } from 'react';
 import { View, FlatList, Alert, StyleSheet } from 'react-native';

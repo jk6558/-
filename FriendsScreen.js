@@ -432,6 +432,7 @@ export default FriendsScreen;
 
 //v6
 //ui 개선
+//FriendsScreen.js
 
 import React, { useState, useEffect } from 'react';
 import { View, FlatList, Alert, StyleSheet } from 'react-native';
