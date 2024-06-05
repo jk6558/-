@@ -754,7 +754,7 @@ export default FriendsList;
 */
 
 /////////
-
+//FirendsList.js
 import React, { useState, useEffect } from 'react';
 import { View, FlatList, Alert, StyleSheet } from 'react-native';
 import { ActivityIndicator, Card, Text, TouchableRipple } from 'react-native-paper';

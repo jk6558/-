@@ -430,6 +430,7 @@ export default FriendsScreen;
 
 /////////////////
 
+/*
 //v6
 //ui 개선
 //FriendsScreen.js
@@ -458,6 +459,135 @@ const FriendsScreen = () => {
       let userList = [];
       querySnapshot.forEach((doc) => {
         if (!currentUser || doc.id !== currentUser.uid) {
+          userList.push({ id: doc.id, ...doc.data() });
+        }
+      });
+      setUsers(userList);
+    } catch (error) {
+      console.error("사용자 정보 가져오기 실패:", error);
+      Alert.alert("데이터 로딩 실패", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addFriend = async (friendId) => {
+    if (!currentUser) {
+      Alert.alert("로그인 필요", "친구를 추가하려면 로그인이 필요합니다.");
+      return;
+    }
+
+    const userDocRef = doc(db, "users", currentUser.uid);
+    try {
+      await updateDoc(userDocRef, {
+        friends: arrayUnion(friendId)
+      });
+      Alert.alert("친구 추가 완료", "친구가 성공적으로 추가되었습니다.");
+      setUsers(users.filter(user => user.id !== friendId));
+    } catch (error) {
+      console.error("친구 추가 실패", error);
+      Alert.alert("친구 추가 실패", "친구를 추가하는 동안 오류가 발생했습니다.");
+    }
+  };
+
+  if (loading) {
+    return <ActivityIndicator animating={true} size="large" style={styles.loadingIndicator} />;
+  }
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={users}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <Card style={styles.card}>
+            <Card.Content>
+              <Text style={styles.name}>{item.name}</Text>
+              <Text style={styles.affiliation}>{item.affiliation}</Text>
+            </Card.Content>
+            <Card.Actions>
+              <Button labelStyle={styles.buttonText} onPress={() => addFriend(item.id)}>친구 추가</Button>
+            </Card.Actions>
+          </Card>
+        )}
+      />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f0f0f0',
+    padding: 10,
+  },
+  loadingIndicator: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  card: {
+    marginVertical: 8,
+    borderRadius: 8,
+    elevation: 4,
+    backgroundColor: 'white',
+  },
+  name: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  affiliation: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  },
+  buttonText: {
+    color: '#1DA1F2',
+  },
+});
+
+export default FriendsScreen;
+
+*/
+
+//////////////
+
+//이미 등록된 친구 안뜨도록 수정
+
+import React, { useState, useEffect } from 'react';
+import { View, FlatList, Alert, StyleSheet } from 'react-native';
+import { Card, Button, Text, ActivityIndicator } from 'react-native-paper';
+import { getAuth } from 'firebase/auth';
+import { getFirestore, collection, getDocs, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore'; // getDoc 추가
+
+const FriendsScreen = () => {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const db = getFirestore();
+  const auth = getAuth();
+  const currentUser = auth.currentUser;
+
+  useEffect(() => {
+    fetchAllUsers();
+  }, []);
+
+  const fetchAllUsers = async () => {
+    try {
+      const userDocRef = doc(db, "users", currentUser.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      let friendsList = [];
+
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        friendsList = userData.friends || [];
+      }
+
+      const userRef = collection(db, "users");
+      const querySnapshot = await getDocs(userRef);
+      let userList = [];
+      querySnapshot.forEach((doc) => {
+        if (!currentUser || (doc.id !== currentUser.uid && !friendsList.includes(doc.id))) {
           userList.push({ id: doc.id, ...doc.data() });
         }
       });
